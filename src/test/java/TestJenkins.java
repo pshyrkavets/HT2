@@ -8,9 +8,9 @@ import org.testng.Assert;
 import org.testng.annotations.*;
 
 public class TestJenkins {
-    String base_url = "http://localhost:8080/";
-    StringBuffer verificationErrors = new StringBuffer();
-    WebDriver driver;
+    private String base_url = "http://localhost:8080/";
+    private StringBuffer verificationErrors = new StringBuffer();
+    private WebDriver driver;
 
     @BeforeClass
     public void beforeClass() {
@@ -22,17 +22,12 @@ public class TestJenkins {
         driver.findElement(By.xpath("//input[@name='Submit' and @value='Sign in']")).click();
     }
 
-    @AfterClass
-    public void afterClass() {
-        driver.quit();
-        String verificationErrorString = verificationErrors.toString();
-        if (!"".equals(verificationErrorString)) {
-            Assert.fail(verificationErrorString);
-        }
-    }
 
+    //1.После клика по ссылке «Manage Jenkins» на странице появляется элемент dt с текстом «Manage Users» и
+    //элемент dd с текстом «Create/delete/modify users that can log in to this Jenkins».
     @Test
     public void manageJenkinsTest() {
+        driver.get(base_url);
         driver.findElement(By.linkText("Настроить Jenkins")).click();
         Assert.assertEquals(driver.findElement(
                 By.xpath("//*[@id=\"main-panel\"]/div[16]/a/dl/dt")).getText(), "Управление пользователями");
@@ -41,8 +36,12 @@ public class TestJenkins {
                 "Создание, удаление и модификция пользователей, имеющих право доступа к Jenkins");
     }
 
+
+    //2.После клика по ссылке, внутри которой содержится элемент dt с текстом «Manage Users», становится доступна
+    //ссылка «Create User».
     @Test
     public void manageUsersTest() {
+        driver.get(base_url);
         driver.findElement(By.linkText("Настроить Jenkins")).click();
         Assert.assertEquals(driver.findElement(
                 By.xpath("//*[@id=\"main-panel\"]/div[16]/a/dl/dt")).getText(), "Управление пользователями");
@@ -50,6 +49,9 @@ public class TestJenkins {
         driver.findElement(By.linkText("Создать пользователя")).click();
     }
 
+
+    //3.После клика по ссылке «Create User» появляется форма с тремя полями типа text и двумя полями типа password,
+    //причём все поля должны быть пустыми.
     @Test
     public void createUserTest() {
         driver.get(base_url + "securityRealm/");
@@ -81,8 +83,23 @@ public class TestJenkins {
         }
 
         Assert.assertTrue(form_found,"No suitable forms found!");
+        Assert.assertEquals(driver.findElement(By.xpath("//*[@id=\"main-panel\"]/form/div[1]/table/tbody/tr[1]/td[2]/input[1]")).
+                getText(), "","Field is not empty!");
+        Assert.assertEquals(driver.findElement(By.xpath("//*[@id=\"main-panel\"]/form/div[1]/table/tbody/tr[2]/td[2]/input[1]")).
+                getText(),"","Field is not empty!");
+        Assert.assertEquals(driver.findElement(By.xpath("//*[@id=\"main-panel\"]/form/div[1]/table/tbody/tr[3]/td[2]/input[1]")).
+                getText(),"","Field is not empty!");
+        Assert.assertEquals(driver.findElement(By.xpath("//*[@id=\"main-panel\"]/form/div[1]/table/tbody/tr[4]/td[2]/input[1]")).
+                getText(),"","Field is not empty!");
+        Assert.assertEquals(driver.findElement(By.xpath("//*[@id=\"main-panel\"]/form/div[1]/table/tbody/tr[5]/td[2]/input[1]")).
+                getText(),"","Field is not empty!");
     }
 
+
+    //4.После заполнения полей формы («Username» = «someuser», «Password» = «somepassword»,
+    //«Confirm password» = «somepassword», «Full name» = «Some Full Name», «E-mail address» = «some@addr.dom») и клика
+    //по кнопке с надписью «Create User» на странице появляется строка таблицы (элемент tr), в которой есть ячейка
+    //(элемент td) с текстом «someuser».
     @Test
     public void createUserUsingPageObjectTest() {
         // 1-действие: "Открыть http://localhost:8080/securityRealm/addUser"
@@ -142,5 +159,27 @@ public class TestJenkins {
         // 7-проверка: "На странице появляется строка таблицы (элемент tr), в которой есть ячейка (элемент td) с
         // текстом «someuser»."
         Assert.assertTrue(page.getTdWithTextSomeuser(), "Unable to create a new user!");
+    }
+
+
+    //5.После клика по ссылке с атрибутом href равным «user/someuser/delete» появляется текст «Are you sure about
+    //deleting the user from Jenkins?».
+    @Test
+    public void deleteUserTest() {
+        driver.findElement(By.linkText("someuser")).click();
+        driver.findElement(By.linkText("Удалить")).click();
+
+        Assert.assertTrue(driver.findElement(By.xpath("/html/body/div[4]/div[2]/form")).
+                        getText().contains("Вы уверены, что хотите удалить пользователя из Jenkins?"),
+                "The text 'Вы уверены, что хотите удалить пользователя из Jenkins?' is not found!");
+    }
+
+    @AfterClass
+    public void afterClass() {
+        driver.quit();
+        String verificationErrorString = verificationErrors.toString();
+        if (!"".equals(verificationErrorString)) {
+            Assert.fail(verificationErrorString);
+        }
     }
 }
