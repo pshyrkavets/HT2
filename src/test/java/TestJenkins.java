@@ -174,6 +174,50 @@ public class TestJenkins {
                 "The text 'Вы уверены, что хотите удалить пользователя из Jenkins?' is not found!");
     }
 
+
+    //6.После клика по кнопке с надписью «Yes» на странице отсутствует строка таблицы (элемент tr), с ячейкой
+    //(элемент td) с текстом «someuser». На странице отсутствует ссылка с атрибутом href равным «user/someuser/delete».
+    @Test
+    public void deleteUserWithYesButtonTest() {
+        driver.findElement(By.xpath("//*[@id=\"yui-gen2-button\"]")).click();
+        driver.findElement(By.xpath("//*[@id=\"tasks\"]/div[2]/a[2]")).click();
+
+        boolean td_with_someuser_found = false;
+        boolean page_with_user_someuser_delete_href_found = false;
+        WebElement table = driver.findElement(By.id("people"));
+        WebElement pageBody = driver.findElement(By.id("jenkins"));
+
+        if(table.findElement(By.tagName("td")).getText().contains("someuser")) {
+            td_with_someuser_found = true;
+
+        }
+        if(pageBody.findElement(By.tagName("a")).getAttribute("href").equals("/user/someuser/delete")) {
+            page_with_user_someuser_delete_href_found = true;
+        }
+
+        Assert.assertFalse(td_with_someuser_found,"Td which has the text 'someuser' exists!");
+        Assert.assertFalse(page_with_user_someuser_delete_href_found,
+                "href which is equal to '/user/someuser/delete' exists on page!");
+    }
+
+
+    //7.{На той же странице, без выполнения каких бы то ни было действий}. На странице отсутствует ссылка с
+    // атрибутом href равным «user/admin/delete».
+    @Test
+    public void userAdminDeleteTest() {
+        driver.get(base_url);
+        boolean page_with_user_admin_delete_href_found = false;
+        WebElement pageBody = driver.findElement(By.id("jenkins"));
+
+        if(pageBody.findElement(By.tagName("a")).getAttribute("href").equals("/user/admin/delete")) {
+            page_with_user_admin_delete_href_found = true;
+        }
+
+        Assert.assertFalse(page_with_user_admin_delete_href_found,
+                "href which is equal to '/user/admin/delete' exists on page!");
+    }
+
+
     @AfterClass
     public void afterClass() {
         driver.quit();
